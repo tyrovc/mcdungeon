@@ -54,6 +54,8 @@ lookup_dispensers = {}
 master_mobs = {}
 max_mob_tier = 0
 structure_values = []
+custom_spawners = {}
+spawners_path = 'spawners'
 
 parser = ConfigParser.SafeConfigParser()
 
@@ -83,7 +85,7 @@ def Load(filename = 'default.cfg'):
     maximize_distance, hall_piston_traps, resetting_hall_pistons, \
     structure_values, master_entrances, master_treasure, secret_rooms, \
     secret_door, silverfish, bury, master_dispensers, maps, mapstore, \
-    max_mob_tier
+    max_mob_tier, custom_spawners, spawners_path
 
     temp = os.path.join(sys.path[0], 'configs', filename)
     try:
@@ -131,7 +133,7 @@ def Load(filename = 'default.cfg'):
         sys.exit('Failed to read mob config from config file.')
     while len(temp_mobs) is not 0:
         for mob in temp_mobs:
-            mob_name = mob[0].capitalize()
+            mob_name = mob[0]
             if max_mob_tier not in master_mobs:
                 master_mobs[max_mob_tier] = []
             master_mobs[max_mob_tier].append((mob_name, mob[1]))
@@ -141,6 +143,19 @@ def Load(filename = 'default.cfg'):
         except:
             temp_mobs = []
             max_mob_tier -= 1
+
+    # Load custom spawners
+    try:
+        if os.path.isdir(os.path.join(sys.path[0],'spawners')):
+            spawners_path = os.path.join(sys.path[0],'spawners')
+        else:
+            spawners_path = 'spawners'
+        for file in os.listdir(spawners_path):
+            if file.endswith(".nbt"):
+                custom_spawners[file[:-4].lower()] = file[:-4]
+        print 'Loaded', len(custom_spawners), 'custom spawners.'
+    except:
+        print 'Could not find spawners direcotry!'
 
     # Process dispensers config
     for d in temp_dispensers:

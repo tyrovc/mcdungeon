@@ -461,14 +461,16 @@ class Dungeon (object):
 
 
     def getspawnertags(self, entity):
-        #See if we have an NBT file match
-        if (os.path.isfile(os.path.join(os.getcwd(),'spawners',entity+'.nbt'))):
-            root_tag = nbt.load(filename=os.path.join(os.getcwd(),'spawners',entity+'.nbt'))
+        # See if we have a custom spawner match
+        if entity.lower() in cfg.custom_spawners.keys():
+            entity = cfg.custom_spawners[entity.lower()]
+            root_tag = nbt.load(filename=os.path.join(cfg.spawners_path,entity+'.nbt'))
             return root_tag
         else:
             root_tag = nbt.TAG_Compound()
 
-        #Cases where the entity id doesn't match the config
+        # Cases where the entity id doesn't match the config
+        entity = entity.capitalize()
         if (entity == 'Pigzombie'):
             root_tag['EntityId'] = nbt.TAG_String('PigZombie')
         elif (entity == 'Cavespider'):
@@ -477,7 +479,7 @@ class Dungeon (object):
             root_tag['EntityId'] = nbt.TAG_String('LavaSlime')
         elif (entity == 'Witherboss'):
             root_tag['EntityId'] = nbt.TAG_String('WitherBoss')
-        #For everything else the input is the EntityId
+        # For everything else the input is the EntityId
         else:
             root_tag['EntityId'] = nbt.TAG_String(entity)
 
@@ -534,11 +536,15 @@ class Dungeon (object):
 
     def loadrandbooktext(self):
         #This error should never trip. The loot generator shouldn't ask for books if the folder is empty
-        if (os.path.isdir(os.path.join(os.getcwd(),'books')) == False):
+        if os.path.isdir(os.path.join(sys.path[0],'books')):
+            book_path = os.path.join(sys.path[0],'books')
+        elif os.path.isdir('books'):
+            book_path = 'books'
+        else:
             sys.exit("Error: Could not find the books folder!")
         #Make a list of all the txt files in the books directory
         booklist = []
-        for file in os.listdir(os.path.join(os.getcwd(),'books')):
+        for file in os.listdir(book_path):
             if (file.endswith(".txt")):
                 booklist.append(file);
         #This error should also never trip.
@@ -547,7 +553,7 @@ class Dungeon (object):
         #Prevent unusual characters from being used
         valid_characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!\"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ "
         #Open the book's text file
-        bookfile = open(os.path.join(os.getcwd(), 'books', random.choice(booklist)))
+        bookfile = open(os.path.join(book_path, random.choice(booklist)))
         bookdata = bookfile.read().splitlines()
         bookfile.close()
         #Create NBT tag
